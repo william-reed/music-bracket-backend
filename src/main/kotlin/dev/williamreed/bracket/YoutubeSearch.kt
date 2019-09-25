@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 data class VideoData(
     val videoId: String,
     val title: String,
-    val thumbnail: String,
+    val thumbnailUrl: String,
     val viewCount: String
 )
 

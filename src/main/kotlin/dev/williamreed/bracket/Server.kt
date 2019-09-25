@@ -7,10 +7,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.features.CallLogging
-import io.ktor.features.Compression
-import io.ktor.features.ContentNegotiation
-import io.ktor.features.DefaultHeaders
+import io.ktor.features.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.jackson.jackson
 import io.ktor.response.respond
 import io.ktor.routing.get
@@ -22,6 +21,19 @@ import io.ktor.util.getOrFail
 
 @KtorExperimentalAPI
 fun Application.module() {
+    // TODO is this all needed?
+    install(CORS) {
+        method(HttpMethod.Options)
+        method(HttpMethod.Get)
+        method(HttpMethod.Post)
+        method(HttpMethod.Put)
+        method(HttpMethod.Delete)
+        method(HttpMethod.Patch)
+        header(HttpHeaders.AccessControlAllowHeaders)
+        header(HttpHeaders.ContentType)
+        header(HttpHeaders.AccessControlAllowOrigin)
+        anyHost()
+    }
     install(DefaultHeaders)
     install(Compression)
     install(CallLogging)
@@ -36,7 +48,7 @@ fun Application.module() {
         }
     }
     routing {
-        get("/search/{query}") {
+        get("/search") {
             val query = call.parameters.getOrFail("query")
             val response = YoutubeSearch.search(query)
             call.respond(response)
@@ -46,6 +58,5 @@ fun Application.module() {
 
 @KtorExperimentalAPI
 fun main() {
-    // TODO add watch directory?
-    embeddedServer(Netty, 8080, module = Application::module).start()
+    embeddedServer(Netty, 8080, watchPaths = listOf("bracket"), module = Application::module).start()
 }
