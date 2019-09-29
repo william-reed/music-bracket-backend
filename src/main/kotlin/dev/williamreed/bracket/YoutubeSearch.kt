@@ -7,13 +7,6 @@ import com.google.api.services.youtube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-data class VideoData(
-    val videoId: String,
-    val title: String,
-    val thumbnailUrl: String,
-    val viewCount: String
-)
-
 /**
  * Handle YouTube searches
  */
@@ -35,30 +28,39 @@ object YoutubeSearch {
                 key = API_KEY
                 q = query
                 type = "video"
-                fields = "items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)"
+                fields = "items(id/kind,id/videoId,snippet/title)"
                 order = "viewCount"
                 maxResults = MAX_RESULTS
             }.execute()
 
             if (search.items == null) error("Nothing returned from search")
 
-            // fetch the view count (used for seeding), and map to a VideoData
             search.items.map { searchResult ->
-                youtube.videos().list("statistics").apply {
-                    id = searchResult.id.videoId
-                    key = API_KEY
-                }
-                    .execute()
-                    .let { video ->
-                        val videoId = searchResult.id.videoId
-                        return@map VideoData(
-                            videoId,
-                            searchResult.snippet.title,
-                            "https://i.ytimg.com/vi/$videoId/hqdefault.jpg",
-                            video.items[0].statistics.viewCount.toString()
-                        )
-                    }
+                val videoId = searchResult.id.videoId
+                return@map VideoData(
+                    searchResult.snippet.title,
+                    videoId
+                )
             }
+
+            // TODO use for seeding at some point
+            // fetch the view count (used for seeding), and map to a VideoData
+//            search.items.map { searchResult ->
+//                youtube.videos().list("statistics").apply {
+//                    id = searchResult.id.videoId
+//                    key = API_KEY
+//                }
+//                    .execute()
+//                    .let { video ->
+//                        val videoId = searchResult.id.videoId
+//                        return@map VideoData(
+//                            videoId,
+//                            searchResult.snippet.title,
+//                            "https://i.ytimg.com/vi/$videoId/hqdefault.jpg",
+//                            video.items[0].statistics.viewCount.toString()
+//                        )
+//                    }
+//            }
         }
     }
 }

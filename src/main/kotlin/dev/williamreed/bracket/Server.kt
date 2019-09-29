@@ -10,9 +10,12 @@ import io.ktor.application.install
 import io.ktor.features.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
+import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -21,6 +24,8 @@ import io.ktor.util.getOrFail
 
 @KtorExperimentalAPI
 fun Application.module() {
+    val bracketService: BracketService = LocalBracketService
+
     // TODO is this all needed?
     install(CORS) {
         method(HttpMethod.Options)
@@ -52,6 +57,21 @@ fun Application.module() {
             val query = call.parameters.getOrFail("query")
             val response = YoutubeSearch.search(query)
             call.respond(response)
+        }
+        post("/bracket") {
+            val bracket = call.receive<Bracket>()
+            val id = bracketService.saveBracket(bracket)
+            call.respond("""{"id": "$id"}""")
+        }
+        get("/bracket") {
+            val id = call.parameters.getOrFail("id")
+            val bracket = bracketService.loadBracket(id)
+
+            if (bracket == null) {
+                call.respond(HttpStatusCode.BadRequest, """{"error": "Invalid ID"}""")
+            } else {
+                call.respond(bracket)
+            }
         }
     }
 }
