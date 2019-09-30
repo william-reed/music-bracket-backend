@@ -1,6 +1,26 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+
+
 plugins {
     id 'java'
+    id 'application'
     id 'org.jetbrains.kotlin.jvm' version '1.3.50'
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+mainClassName = "dev.williamreed.bracket.ServerKt"
+
+sourceSets {
+    main.kotlin.srcDirs = [ 'src/main/kotlin' ]
+    main.resources.srcDirs = [ 'src/main/resources' ]
 }
 
 group 'dev.williamreed'
